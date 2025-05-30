@@ -1,0 +1,20 @@
+[project]
+name = "perdiz"
+version = "0.0.1"
+description="Crie servidores/APIs em python com extrema facilidade"
+authors = [
+    { name="Marcio Perdigão", email="marcio.s.perdigao@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.7"
+license = {text = "MIT"}
+dependencies = [
+    "gevent",
+    "gevent-websocket"
+]
+
+[build-system]
+requires = ["gevent","gevent-websocket"]
+[tool.setuptools.packages.find]
+where = ["src"]
+

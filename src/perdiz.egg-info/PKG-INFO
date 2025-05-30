@@ -1,0 +1,14 @@
+Metadata-Version: 2.4
+Name: perdiz
+Version: 0.0.1
+Summary: Crie servidores com extrema facilidade
+Author-email: Marcio Perdigão <marcio.s.perdigao@gmail.com>
+License: MIT
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: gevent
+Requires-Dist: gevent-websocket
+Dynamic: license-file
+
+Crie servidores simples com muita facilidade. Suporte a websocket

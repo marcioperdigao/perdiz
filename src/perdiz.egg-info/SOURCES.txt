@@ -1,0 +1,16 @@
+LICENSE
+README.md
+pyproject.toml
+src/perdiz/__init__.py
+src/perdiz/app.py
+src/perdiz/applications.py
+src/perdiz/core.py
+src/perdiz/newServer.py
+src/perdiz/response.py
+src/perdiz/socketClient.py
+src/perdiz/webSocketRouter.py
+src/perdiz.egg-info/PKG-INFO
+src/perdiz.egg-info/SOURCES.txt
+src/perdiz.egg-info/dependency_links.txt
+src/perdiz.egg-info/requires.txt
+src/perdiz.egg-info/top_level.txt
