@@ -7,6 +7,7 @@ src/perdiz/applications.py
 src/perdiz/core.py
 src/perdiz/newServer.py
 src/perdiz/response.py
+src/perdiz/room.py
 src/perdiz/socketClient.py
 src/perdiz/webSocketRouter.py
 src/perdiz.egg-info/PKG-INFO

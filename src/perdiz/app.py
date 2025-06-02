@@ -28,15 +28,16 @@ class AppClass:
             body_size = 0
         body = environ["wsgi.input"].read(body_size)
         
+        for key,value in environ.items():
+            pass
+            #print(f"{key}: {value}")
         self.__header = {
             "method":environ["REQUEST_METHOD"],
             "path":environ["PATH_INFO"],
             "body":body,
-            "body_length":body_size
+            "body_length":body_size,
+            "content-type":environ.get("CONTENT_TYPE",None)
         }
-        for key,value in environ.items():
-            pass
-            #print(f"{key}: {value}")
         print("\n")
         #print(environ["REQUEST_METHOD"])
         self.__start = start_response
