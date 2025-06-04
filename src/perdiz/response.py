@@ -19,6 +19,7 @@ class Response:
         self.__headerJpeg = ('200 OK',[('Content-type','image/jpeg')])
         self.__headerGif = ('200 OK',[('Content-type','image/gif')])
         self.__headerError = ('401',[('Content-type','plain/text')])
+        #self.__headerOther = ('200 OK',[('Content-Type', 'application/octet-stream'),('Content-Disposition', f'attachment; filename="{filename}"')])
     def error(self,body):
         return (self.__headerError,body)
     def text(self,body):
@@ -41,4 +42,10 @@ class Response:
         b = json.dumps(body,default=convert_obj)
         print(str(b),self.__headerJson)
         return(self.__headerJson,b)
+    def other(self,body,filename):
+        print("imprimindo filename")
+        print(filename)
+        ('200 OK',[('Content-Type', 'application/octet-stream'),('Content-Disposition', f'attachment; filename="{filename}"')])
+        return(self.__headerOther.body)
+
 

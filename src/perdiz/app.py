@@ -1,4 +1,4 @@
-import multiprocessing
+import multiprocessing,os
 from .response import Response
 #from router import Rota
 
@@ -17,6 +17,8 @@ class AppClass:
     __routerPost = {}
     __routerGet = {}
     __routerOther = None
+    __staticsPaths = dict()
+
     def __init__(self,environ,start_response):
         self.__environ = environ
         self.__res = Response()
@@ -41,27 +43,100 @@ class AppClass:
         print("\n")
         #print(environ["REQUEST_METHOD"])
         self.__start = start_response
+    def download_file(self):
+        try:
+            # 1. Extração e validação do caminho
+            fullPath = self.__header['path'].split("/")
+            
+            # Verifica se o path tem formato correto: ["", "download", "arquivo.ext"]
+            if len(fullPath) < 3:
+                return self.__res.error("Invalid path format")
+        
+            filename = fullPath[2]
+            if not filename:  # Verifica se o nome do arquivo não está vazio
+                return self.__res.error("Empty filename")
+        
+            print(f"full path {fullPath}")
+            print(f"filename {filename}")
+        
+            # 2. Validação do diretório base
+            base_key = "/" + fullPath[1]
+            if base_key not in self.__staticsPaths:
+                return self.__res.error("Invalid resource path")
+        
+            filepath = os.path.join(self.__staticsPaths[base_key], filename)
+            print(f"filepath {filepath}")
+        
+            # 3. Verificação de segurança do caminho
+            # Previne directory traversal (ex: tentativas de acessar ../arquivos)
+            resolved_path = os.path.abspath(filepath)
+            base_dir = os.path.abspath(self.__staticsPaths[base_key])
+            
+            if not resolved_path.startswith(base_dir):
+                return self.__res.error("Access denied: invalid path")
+        
+            # 4. Verificação do arquivo
+            if not os.path.exists(resolved_path):
+                return self.__res.error("File not found")
+        
+            if not os.path.isfile(resolved_path):
+                return self.__res.error("Path is not a file")
+        
+            # 5. Determinação do tipo MIME
+            _, ext = os.path.splitext(filename)
+            ext = ext.lower()
+            
+            # 6. Leitura do arquivo
+            with open(resolved_path, 'rb') as f:
+                file_content = f.read()
+        
+            # 7. Roteamento por extensão
+            handlers = {
+                '.png': self.__res.png,
+                '.jpg': self.__res.jpg,
+                '.jpeg': self.__res.jpeg,
+                '.gif': self.__res.gif,
+                '.html': lambda c: self.__res.html(c.decode('utf-8')),
+                '.css': lambda c: self.__res.css(c.decode('utf-8')),
+                '.js': lambda c: self.__res.js(c.decode('utf-8'))
+            }
+        
+            handler = handlers.get(ext, lambda c: self.__res.other(c, filename))
+            return handler(file_content)
+
+        except PermissionError:
+            return self.__res.error("Permission denied")
+        except IOError as e:
+            return self.__res.error(f"I/O error: {str(e)}")
+        except Exception as e:
+            print(f"Unexpected error: {str(e)}")
+            return self.__res.error("Internal server error")    
     @classmethod
     def post(cls,path):
-        print(f"Veio no path post: {path}")
+        #print(f"Veio no path post: {path}")
         def wrapper(func):
             cls.__routerPost[path] = func
         return wrapper
     @staticmethod
     def other():
-        print(f"Veio no path other: ")
+        #print(f"Veio no path other: ")
         
         def wrapper(func):
             AppClass._AppClass__routerOther = func
         return wrapper
     @classmethod
     def get(cls,path):
-        print(f"Veio no path get: {path}")
+        #print(f"Veio no path get: {path}")
         def wrapper(func):
             print(func)
             cls.__routerGet[path] = func
             return cls.__routerGet[path]
         return wrapper
+    @classmethod
+    def static(cls,path,fullPath):
+        print(f"Veio no path static: {path}")
+        cls.__staticsPaths[path] = fullPath
+
     def __call__(self,*param_arg):
         print("Hello World CALL")
         def wrapper(environ,start_response):
@@ -90,8 +165,16 @@ class AppClass:
                 elif self.__header['path'] == '/favicon.ico':
                     response_headers = ('204 No Content',[('Content-type','text/html')])
                     response = ''
+                elif any(self.__header['path'].startswith(prefix) for prefix in self.__staticsPaths):
+                    print("o endereço é static")
+                    try:
+                        response_headers, response = self.download_file()
+                    except Exception as e:
+                        print(e)
+                    
                 elif self.__routerOther!=None:
                     print("routerOther existe")
+                    print(self.__staticsPaths)
                     response_headers,response = self.__routerOther(self.__header,self.__res)
                 else:
                     print("routerOther é None")
