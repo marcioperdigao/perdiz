@@ -21,6 +21,7 @@ class Response:
         self.__headerError = ('401',[('Content-type','plain/text')])
         #self.__headerOther = ('200 OK',[('Content-Type', 'application/octet-stream'),('Content-Disposition', f'attachment; filename="{filename}"')])
     def error(self,body):
+        print(body)
         return (self.__headerError,body)
     def text(self,body):
         return (self.__headerTextPlain,body)

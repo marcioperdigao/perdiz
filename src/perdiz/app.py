@@ -76,6 +76,7 @@ class AppClass:
                 return self.__res.error("Access denied: invalid path")
         
             # 4. Verificação do arquivo
+            print(resolved_path)
             if not os.path.exists(resolved_path):
                 return self.__res.error("File not found")
         
