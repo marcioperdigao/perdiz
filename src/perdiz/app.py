@@ -1,6 +1,6 @@
-import multiprocessing,os
+import os,io
+from multipart import MultipartParser
 from .response import Response
-#from router import Rota
 
 #import gunicorn.app.base
 import ssl,secrets,string,json
@@ -9,15 +9,14 @@ import ssl,secrets,string,json
 #print(token)
 
 
-
-
-def number_of_workers():
-    return (multiprocessing.cpu_count() * 2) + 1
+#def number_of_workers():
+#    return (multiprocessing.cpu_count() * 2) + 1
 class AppClass:
     __routerPost = {}
     __routerGet = {}
     __routerOther = None
     __staticsPaths = dict()
+    __staticsPathsUpload = dict()
 
     def __init__(self,environ,start_response):
         self.__environ = environ
@@ -43,11 +42,106 @@ class AppClass:
         print("\n")
         #print(environ["REQUEST_METHOD"])
         self.__start = start_response
+    def upload_file(self) -> tuple:
+        print("/FTP - File upload endpoint hit")
+
+        try:
+            # 1. Validação dos headers
+            content_type = self.__header.get("content-type", "")
+            content_length = int(self.__header.get("body_length", 0))
+            body_raw = self.__header.get("body", b"")
+    
+            print(f"Debug - Content-Type: {content_type}")
+            print(f"Debug - Content-Length: {content_length}")
+            print(f"Debug - Body length received: {len(body_raw)} bytes")
+    
+            # Verificação básica do content-type
+            if not content_type.startswith("multipart/form-data"):
+                return self.__res.error("Content-Type must be multipart/form-data")
+    
+            # Extrai o boundary do content-type
+            boundary = None
+            for part in content_type.split(";"):
+                part = part.strip()
+                if part.startswith("boundary="):
+                    boundary = part[9:]  # Remove 'boundary='
+                    # Se o boundary estiver entre aspas
+                    if boundary.startswith('"') and boundary.endswith('"'):
+                        boundary = boundary[1:-1]
+                    break
+    
+            if not boundary:
+                return self.__res.error("Missing boundary in Content-Type")
+    
+            # Verificação do tamanho do conteúdo
+            if len(body_raw) != content_length:
+                return self.__res.error(f"Content length mismatch. Expected {content_length}, got {len(body_raw)}")
+    
+            # 2. Processamento do conteúdo multipart
+            try:
+                stream = io.BytesIO(body_raw)
+                # Garante que o boundary está no formato correto
+                boundary = boundary.encode('ascii')
+    
+                parser = MultipartParser(stream, boundary)
+    
+                fields = {}
+                files = {}
+    
+                # Lê todas as partes antes de processar
+                parts = list(parser)
+                if not parts:
+                    return self.__res.error("No parts found in multipart data")
+    
+                for part in parts:
+                    if part.filename:
+                        # Lê o conteúdo imediatamente (o parser pode fechar o stream)
+                        file_content = part.raw.read() if hasattr(part.raw, 'read') else part.raw
+                        files[part.name] = {
+                            'filename': part.filename,
+                            'content': file_content
+                        }
+                    else:
+                        fields[part.name] = part.value
+    
+            except Exception as e:
+                return self.__res.error(f"Multipart parsing failed: {str(e)}")
+    
+            # 3. Validação do arquivo recebido
+            if 'file' not in files:
+                return self.__res.error('Missing file in upload')
+    
+            file_info = files['file']
+            filename = file_info['filename']
+            file_content = file_info['content']
+    
+            # 4. Salvamento do arquivo
+            try:
+                # Previne path traversal
+                filename = os.path.basename(filename)
+                local_path = os.path.join('./tmp', filename)
+    
+                with open(local_path, 'wb') as f:
+                    if isinstance(file_content, bytes):
+                        f.write(file_content)
+                    else:
+                        f.write(file_content.read() if hasattr(file_content, 'read') else file_content)
+    
+                print(f"Debug - File saved successfully: {local_path}")
+                return self.__res.text("File uploaded successfully")
+    
+            except Exception as e:
+                return self.__res.error(f"Failed to save file: {str(e)}")
+    
+        except Exception as e:
+            return self.__res.error(f"Unexpected error: {str(e)}")
+
+
     def download_file(self):
         try:
             # 1. Extração e validação do caminho
             fullPath = self.__header['path'].split("/")
-            
+
             # Verifica se o path tem formato correto: ["", "download", "arquivo.ext"]
             if len(fullPath) < 3:
                 return self.__res.error("Invalid path format")
@@ -138,6 +232,10 @@ class AppClass:
         print(f"Veio no path static: {path}")
         cls.__staticsPaths[path] = fullPath
 
+    @classmethod
+    def staticUpload(cls,path,fullPath):
+        print(f"veio no path staticUpload: {path}")
+        cls.__staticsPathsUpload[path] = fullPath
     def __call__(self,*param_arg):
         print("Hello World CALL")
         def wrapper(environ,start_response):
@@ -186,6 +284,12 @@ class AppClass:
                 if(self.__header["path"] in self.__routerPost):
 
                     response_headers,response = self.__routerPost[self.__header["path"]](self.__header,self.__res)
+                elif any(self.__header['path'].startswith(prefix) for prefix in self.__staticsPathsUpload):
+                    print("o endereço é static no upload")
+                    try:
+                        response_headers, response = self.upload_file()
+                    except Exception as e:
+                        print(e)
                 else:
                     response_headers = ('404 Not Found',[('Content-type','plain/text')])
                     response = 'Erreiiii'
@@ -195,6 +299,7 @@ class AppClass:
         #print(response_headers)
     #print(response)
         #headers.append(('version','HTTP/1.1'))
+        print(response_headers)
         status, headers = response_headers
         if status.startswith('204'):
             headers = [(key, value) for key, value in headers if key != 'Content-Length']
