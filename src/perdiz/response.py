@@ -46,7 +46,7 @@ class Response:
     def other(self,body,filename):
         print("imprimindo filename")
         print(filename)
-        ('200 OK',[('Content-Type', 'application/octet-stream'),('Content-Disposition', f'attachment; filename="{filename}"')])
-        return(self.__headerOther.body)
+        return (('200 OK',[('Content-Type', 'application/octet-stream'),('Content-Disposition', f'attachment; filename="{filename}"')]),body)
+        #return(self.__headerOther.body)
 
 
