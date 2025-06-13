@@ -18,7 +18,9 @@ class Response:
         self.__headerJpg = ('200 OK',[('Content-type','image/jpg')])
         self.__headerJpeg = ('200 OK',[('Content-type','image/jpeg')])
         self.__headerGif = ('200 OK',[('Content-type','image/gif')])
+        self.__headerTooLarge = ('413 Payload Too Large',[('Content-type','text/plain')])
         self.__headerError = ('401',[('Content-type','plain/text')])
+
         #self.__headerOther = ('200 OK',[('Content-Type', 'application/octet-stream'),('Content-Disposition', f'attachment; filename="{filename}"')])
     def error(self,body):
         print(body)
@@ -43,6 +45,8 @@ class Response:
         b = json.dumps(body,default=convert_obj)
         print(str(b),self.__headerJson)
         return(self.__headerJson,b)
+    def tooLarge(self):
+        return (self.__headerTooLarge,b"Erro: Body maior que 64KB nao permitido.")
     def other(self,body,filename):
         print("imprimindo filename")
         print(filename)

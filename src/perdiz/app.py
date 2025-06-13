@@ -17,6 +17,7 @@ class AppClass:
     __routerOther = None
     __staticsPaths = dict()
     __staticsPathsUpload = dict()
+    __max_size = 128.000 #max size bytes
 
     def __init__(self,environ,start_response):
         self.__environ = environ
@@ -24,6 +25,8 @@ class AppClass:
         try:
             #print(environ)
             body_size = int(environ.get('CONTENT_LENGTH',0))
+            print(f"body size: {body_size}")
+
         except (ValueError):
             print("error: "+str(ValueError))
             body_size = 0
@@ -42,6 +45,9 @@ class AppClass:
         print("\n")
         #print(environ["REQUEST_METHOD"])
         self.__start = start_response
+    @classmethod
+    def setMaxSize(cls,size):
+        cls.__max_size = size
     def upload_file(self) -> tuple:
         print("/FTP - File upload endpoint hit")
 
@@ -251,6 +257,15 @@ class AppClass:
        #method = self.__environ["REQUEST_METHOD"]
         #path = self.__environ["RAW_URI"]
         #print(len(self.__routerPost))
+        
+        if(self.__header["body_length"]>self.__max_size):
+            response_headers,response = self.__res.tooLarge()
+            status, headers = response_headers
+            print("mensagem é grande demais e por isso será boqueada")
+            self.__start(status,headers)
+            yield response
+            return
+
         response = ""
         response_headers = ""
         for p,f in self.__routerPost.items():
