@@ -17,7 +17,7 @@ class AppClass:
     __routerOther = None
     __staticsPaths = dict()
     __staticsPathsUpload = dict()
-    __max_size = 128.000 #max size bytes
+    __max_size = 128_000 #max size bytes
 
     def __init__(self,environ,start_response):
         self.__environ = environ
@@ -262,6 +262,7 @@ class AppClass:
             response_headers,response = self.__res.tooLarge()
             status, headers = response_headers
             print("mensagem é grande demais e por isso será boqueada")
+            print(self.__header["body_length"],self.__max_size)
             self.__start(status,headers)
             yield response
             return
