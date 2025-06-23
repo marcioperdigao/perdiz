@@ -1,7 +1,6 @@
 from gevent import monkey; monkey.patch_all()
 from gevent.pywsgi import WSGIServer
 from geventwebsocket.handler import WebSocketHandler
-import asyncio
 
 
 class Server:
@@ -9,8 +8,11 @@ class Server:
         self.host = host
         self.port = port
         self.AppClass = AppClass
-        self.socketRouter = socketRouter
-        self.server = WSGIServer((self.host, self.port), self.simple_app, handler_class=WebSocketHandler)
+        if(socketRouter is not None):
+            self.socketRouter = socketRouter
+            self.server = WSGIServer((self.host, self.port), self.simple_app, handler_class=WebSocketHandler)
+        else:
+            self.server = WSGIServer((self.host, self.port), self.simple_app) 
     
     def handle_http(self,environ, start_response):
         """Lógica simples para responder a requisições HTTP."""
@@ -20,12 +22,12 @@ class Server:
     def handle_websocket(self,ws):
         """Lógica simples para lidar com conexões WebSocket."""
         print("vindo aqui no websocket")
-        self.socketRouter.conectado(ws)
+        if(self.socketRouter is not None):
+            self.socketRouter.conectado(ws)
     
     def simple_app(self,environ, start_response):
         """Mecanismo simples para separar WebSocket de HTTP."""
         if environ["PATH_INFO"] == "/ws":
-            print("WS")
             ws = environ.get("wsgi.websocket")
             if ws:
                 self.handle_websocket(ws)

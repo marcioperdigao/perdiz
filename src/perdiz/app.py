@@ -15,6 +15,7 @@ class AppClass:
     __routerGet = {}
     __routerOther = None
     __staticsPaths = dict()
+    __staticsFiles = dict()
     __staticsPathsUpload = dict()
     __max_size = 128_000 #max size bytes
 
@@ -144,12 +145,18 @@ class AppClass:
         except Exception as e:
             return self.__res.error(f"Unexpected error: {str(e)}")
 
+    def downloadHtml(self):
+        # 1. Extração e validação do caminho
+        fullPath = self.__header['path'].split("/")
+        with open(fullPath[1]) as file:
+            pass
 
     def download_file(self):
         try:
             # 1. Extração e validação do caminho
             fullPath = self.__header['path'].split("/")
 
+            print(fullPath)
             # Verifica se o path tem formato correto: ["", "download", "arquivo.ext"]
             if len(fullPath) < 3:
                 return self.__res.error("Invalid path format")
@@ -238,6 +245,11 @@ class AppClass:
     def static(cls,path,fullPath):
         print(f"Veio no path static: {path}")
         cls.__staticsPaths[path] = fullPath
+    @classmethod
+    def staticFile(cls,path,fullPath):
+        print(f"Veio no path staticFile: {path} {fullPath}")
+        cls.__staticsFiles[path] = fullPath
+        print(cls.__staticsFiles)
 
     @classmethod
     def staticUpload(cls,path,fullPath):
@@ -287,7 +299,13 @@ class AppClass:
                         response_headers, response = self.download_file()
                     except Exception as e:
                         print(e)
-                    
+                elif any(self.__header['path'].endswith(prefix) for prefix in self.__staticsFiles):
+                    print("o endereço é staticFiles")
+                    try:
+                        response_headers, response = self.download_file()
+                    except Exception as e:
+                        print(e)
+   
                 elif self.__routerOther!=None:
                     print("routerOther existe")
                     response_headers,response = self.__routerOther(self.__header,self.__res)
