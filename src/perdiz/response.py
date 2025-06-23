@@ -43,13 +43,11 @@ class Response:
         return(self.__headerJavascript,body)
     def json(self,body):
         b = json.dumps(body,default=convert_obj)
-        print(str(b),self.__headerJson)
         return(self.__headerJson,b)
     def tooLarge(self):
         return (self.__headerTooLarge,b"Erro: Body maior que 64KB nao permitido.")
     def other(self,body,filename):
         print("imprimindo filename")
-        print(filename)
         return (('200 OK',[('Content-Type', 'application/octet-stream'),('Content-Disposition', f'attachment; filename="{filename}"')]),body)
         #return(self.__headerOther.body)
 

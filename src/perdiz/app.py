@@ -4,9 +4,8 @@ from .response import Response
 
 #import gunicorn.app.base
 import ssl,secrets,string,json
-#alphabet = string.ascii_letters + string.digits
-#token = ''.join(secrets.choice(alphabet) for i in range(256))
-#print(token)
+alphabet = string.ascii_letters + string.digits
+
 
 
 #def number_of_workers():
@@ -25,7 +24,6 @@ class AppClass:
         try:
             #print(environ)
             body_size = int(environ.get('CONTENT_LENGTH',0))
-            print(f"body size: {body_size}")
 
         except (ValueError):
             print("error: "+str(ValueError))
@@ -48,6 +46,10 @@ class AppClass:
     @classmethod
     def setMaxSize(cls,size):
         cls.__max_size = size
+    @staticmethod
+    def generateId():
+        token = ''.join(secrets.choice(alphabet) for i in range(16))
+        return token
     def upload_file(self) -> tuple:
         print("/FTP - File upload endpoint hit")
 
@@ -229,7 +231,6 @@ class AppClass:
     def get(cls,path):
         #print(f"Veio no path get: {path}")
         def wrapper(func):
-            print(func)
             cls.__routerGet[path] = func
             return cls.__routerGet[path]
         return wrapper
@@ -289,7 +290,6 @@ class AppClass:
                     
                 elif self.__routerOther!=None:
                     print("routerOther existe")
-                    print(self.__staticsPaths)
                     response_headers,response = self.__routerOther(self.__header,self.__res)
                 else:
                     print("routerOther é None")
@@ -315,14 +315,12 @@ class AppClass:
         #print(response_headers)
     #print(response)
         #headers.append(('version','HTTP/1.1'))
-        print(response_headers)
         status, headers = response_headers
         if status.startswith('204'):
             headers = [(key, value) for key, value in headers if key != 'Content-Length']
             self.__start(status,headers)
             yield b'' #para status 204, sem conteúdo
         else:
-            print("aqui tambem")
             if isinstance(response, str):
                 chunck = response.encode('utf-8')
                 contentLength = str(len(response.encode('utf-8')))
