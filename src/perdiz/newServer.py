@@ -1,7 +1,7 @@
 from gevent import monkey; monkey.patch_all()
 from gevent.pywsgi import WSGIServer
 from geventwebsocket.handler import WebSocketHandler
-
+import os
 
 class Server:
     def __init__(self, host='0.0.0.0', port="5000",AppClass=None,socketRouter=None):
@@ -10,10 +10,16 @@ class Server:
         self.AppClass = AppClass
         if(socketRouter is not None):
             self.socketRouter = socketRouter
-            self.server = WSGIServer((self.host, self.port), self.simple_app, handler_class=WebSocketHandler)
+
+            if port==443:
+                self.server = WSGIServer((self.host, self.port), self.simple_app, handler_class=WebSocketHandler,keyfile='key.pem',certfile='cert.pem')
+            else:
+                self.server = WSGIServer((self.host, self.port), self.simple_app, handler_class=WebSocketHandler)
         else:
-            self.server = WSGIServer((self.host, self.port), self.simple_app) 
-    
+            if port==443:
+                self.server = WSGIServer((self.host, self.port), self.simple_app, keyfile='key.pem',certfile='cert.pem')
+            else:
+                self.server = WSGIServer((self.host, self.port), self.simple_app)
     def handle_http(self,environ, start_response):
         """Lógica simples para responder a requisições HTTP."""
         start_response("200 OK", [("Content-Type", "text/plain")])
