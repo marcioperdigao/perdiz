@@ -169,7 +169,7 @@ class AppClass:
             print(f"filename {filename}")
         
             # 2. Validação do diretório base
-            base_key = "/" + fullPath[1]
+            base_key = "/" + fullPath[1] +"/"
             if base_key not in self.__staticsPaths:
                 return self.__res.error("Invalid resource path")
         
