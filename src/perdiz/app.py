@@ -51,8 +51,9 @@ class AppClass:
     def generateId():
         token = ''.join(secrets.choice(alphabet) for i in range(16))
         return token
-    def upload_file(self) -> tuple:
+    def upload_file(self,theFullPath) -> tuple:
         print("/FTP - File upload endpoint hit")
+        print(f"the path {theFullPath}");
 
         try:
             # 1. Validação dos headers
@@ -128,7 +129,7 @@ class AppClass:
             try:
                 # Previne path traversal
                 filename = os.path.basename(filename)
-                local_path = os.path.join('./tmp', filename)
+                local_path = os.path.join(theFullPath, filename)
     
                 with open(local_path, 'wb') as f:
                     if isinstance(file_content, bytes):
@@ -314,16 +315,22 @@ class AppClass:
                     response_headers = ('404 Not Found',[('Content-type','text/html')])
                     response = '<h1>Error</h1>'
             case "POST":
-                #print(self.__routerPost)
+                print(self.__header["path"])
                 if(self.__header["path"] in self.__routerPost):
 
                     response_headers,response = self.__routerPost[self.__header["path"]](self.__header,self.__res)
                 elif any(self.__header['path'].startswith(prefix) for prefix in self.__staticsPathsUpload):
                     print("o endereço é static no upload")
-                    try:
-                        response_headers, response = self.upload_file()
-                    except Exception as e:
-                        print(e)
+                    matched_prefix = next(
+                        (prefix for prefix in self.__staticsPathsUpload 
+                         if self.__header['path'].startswith(prefix)),
+                        None
+                    )
+                    if matched_prefix:
+                        try:
+                            response_headers, response = self.upload_file(self.__staticsPathsUpload[matched_prefix])  # Passa o prefix como argumento
+                        except Exception as e:
+                            print(e)
                 else:
                     response_headers = ('404 Not Found',[('Content-type','plain/text')])
                     response = 'Erreiiii'
