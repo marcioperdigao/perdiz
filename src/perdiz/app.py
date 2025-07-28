@@ -1,6 +1,7 @@
 import os,io
 from multipart import MultipartParser
 from .response import Response
+from pathlib import Path
 
 #import gunicorn.app.base
 import ssl,secrets,string,json
@@ -17,6 +18,7 @@ class AppClass:
     __staticsPaths = dict()
     __staticsFiles = dict()
     __staticsPathsUpload = dict()
+    __defaultFolder = ""
     __max_size = 128_000 #max size bytes
 
     def __init__(self,environ,start_response):
@@ -231,7 +233,6 @@ class AppClass:
     @staticmethod
     def other():
         #print(f"Veio no path other: ")
-        
         def wrapper(func):
             AppClass._AppClass__routerOther = func
         return wrapper
@@ -242,6 +243,14 @@ class AppClass:
             cls.__routerGet[path] = func
             return cls.__routerGet[path]
         return wrapper
+    @staticmethod
+    def setDefaultPath(path):
+        __defaultFolder = path
+    @classmethod
+    def teste(cls,link,folder):
+        print(f"Veio no teste static: {link}")
+        fullPath = setPath(cls.__defaultFolder,folder)
+        cls.__staticsPaths[link] = fullPath
     @classmethod
     def static(cls,path,fullPath):
         print(f"Veio no path static: {path}")
@@ -357,6 +366,12 @@ class AppClass:
             self.__start(status,headers)
             #print("retornando")
             yield chunck
+
+def setPath(path="",folder=""):
+    thePath = Path(path).parent / folder
+    print(thePath)
+    return thePath
+
 
 #class StandaloneApplication(gunicorn.app.base.BaseApplication):
 #
