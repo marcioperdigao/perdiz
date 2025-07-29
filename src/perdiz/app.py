@@ -209,6 +209,7 @@ class AppClass:
                 '.jpg': self.__res.jpg,
                 '.jpeg': self.__res.jpeg,
                 '.gif': self.__res.gif,
+                '.ico': self.__res.ico,
                 '.html': lambda c: self.__res.html(c.decode('utf-8')),
                 '.css': lambda c: self.__res.css(c.decode('utf-8')),
                 '.js': lambda c: self.__res.js(c.decode('utf-8'))

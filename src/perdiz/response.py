@@ -18,6 +18,7 @@ class Response:
         self.__headerJpg = ('200 OK',[('Content-type','image/jpg')])
         self.__headerJpeg = ('200 OK',[('Content-type','image/jpeg')])
         self.__headerGif = ('200 OK',[('Content-type','image/gif')])
+        self.__headerIco = ('200 OK',[('Content-type','image/x-icon')])
         self.__headerTooLarge = ('413 Payload Too Large',[('Content-type','text/plain')])
         self.__headerError = ('401',[('Content-type','plain/text')])
 
@@ -35,6 +36,8 @@ class Response:
         return (self.__headerJpeg,body)
     def gif(self,body):
         return (self.__headerGif,body)
+    def ico(self,body):
+        return (self.__headerIco,body)
     def html(self,body):
         return (self.__headerHtml,body)
     def css(self,body):
