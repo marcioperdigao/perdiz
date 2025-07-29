@@ -246,16 +246,17 @@ class AppClass:
         return wrapper
     @staticmethod
     def setDefaultPath(path):
-        __defaultFolder = path
+        AppClass.__defaultFolder = os.path.dirname(path)
     @classmethod
     def teste(cls,link,folder):
         print(f"Veio no teste static: {link}")
         fullPath = setPath(cls.__defaultFolder,folder)
         cls.__staticsPaths[link] = fullPath
     @classmethod
-    def static(cls,path,fullPath):
-        print(f"Veio no path static: {path}")
-        cls.__staticsPaths[path] = fullPath
+    def static(cls,link,folder):
+        print(f"Veio no link:{link} folder: {folder}")
+        fullPath = setPath(AppClass.__defaultFolder,folder)
+        cls.__staticsPaths[link] = fullPath
     @classmethod
     def staticFile(cls,path,fullPath):
         print(f"Veio no path staticFile: {path} {fullPath}")
@@ -369,7 +370,9 @@ class AppClass:
             yield chunck
 
 def setPath(path="",folder=""):
-    thePath = Path(path).parent / folder
+    thePath = f"{path}/{folder}"
+    print(path)
+    print(folder)
     print(thePath)
     return thePath
 
